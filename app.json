@@ -4,11 +4,17 @@
     "slug": "videoplayer",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.webp",
+    "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
+    "androidNavigationBar": {
+      "visible": "immersive"
+    },
+    "androidStatusBar": {
+      "translucent": true
+    },
     "splash": {
-      "image": "./assets/images/icon.webp",
+      "image": "./assets/images/splash.png",
       "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
@@ -17,7 +23,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.webp",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
@@ -33,6 +39,14 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "expo-build-properties",
+      {
+        "android": {
+          "enableProgaurdInReleaseBuilds": true
+        }
+      }
+      ],
       "expo-router",
       [
         "expo-media-library",
@@ -48,13 +62,7 @@
         {
           "initialOrientation": "DEFAULT"
         }
-      ],
-      "expo-build-properties",
-      {
-        "android": {
-          "enableProgaurdInReleaseBuilds": true
-        }
-      }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

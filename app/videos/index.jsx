@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import * as MediaLibrary from "expo-media-library";
@@ -46,6 +46,10 @@ const VideosList = () => {
     }
   }
 
+  console.log(videos?.length);
+
+  const height = Dimensions.get('screen').height;
+
   return (
     <ScrollView
       scrollEnabled={true}
@@ -54,7 +58,7 @@ const VideosList = () => {
         alignItems: "center",
         justifyContent: "space-between",
         width: "100%",
-        height: "auto",
+        height: height,
         padding: 10,
         flexDirection: "row",
         flexWrap: "wrap",
