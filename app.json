@@ -7,19 +7,17 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "androidNavigationBar": {
-      "visible": "immersive"
-    },
     "androidStatusBar": {
       "translucent": true
     },
     "splash": {
       "image": "./assets/images/splash.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#ffffff"
+      "resizeMode": "contain",
+      "backgroundColor": "#000"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.codewitharun.videoplayer"
     },
     "android": {
       "adaptiveIcon": {
@@ -41,11 +39,11 @@
     "plugins": [
       [
         "expo-build-properties",
-      {
-        "android": {
-          "enableProgaurdInReleaseBuilds": true
+        {
+          "android": {
+            "enableProgaurdInReleaseBuilds": true
+          }
         }
-      }
       ],
       "expo-router",
       [
@@ -62,7 +60,8 @@
         {
           "initialOrientation": "DEFAULT"
         }
-      ]
+      ],
+      "react-native-video"
     ],
     "experiments": {
       "typedRoutes": true

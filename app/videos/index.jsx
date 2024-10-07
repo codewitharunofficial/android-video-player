@@ -4,11 +4,15 @@ import { useLocalSearchParams } from "expo-router";
 import * as MediaLibrary from "expo-media-library";
 import VideoComponents from "../../components/Video";
 import { createThumbnail } from "react-native-create-thumbnail";
+import { FlatList } from "react-native-gesture-handler";
+import Loader from "@/components/Loader";
 
 const VideosList = () => {
   const { albumId } = useLocalSearchParams();
   const [videos, setVideos] = useState();
+  const [isLoading, setIsLoading] = useState(false);
   async function getAssetsFromAlbum() {
+    setIsLoading(true);
     try {
       const videoAssets = await MediaLibrary.getAssetsAsync({
         album: albumId,
@@ -36,33 +40,30 @@ const VideosList = () => {
           timeStamp: 10000,
         });
         // video.thumbnail = thumbnail.path;
-        video = Object.assign(video, {thumbnail: thumbnail.path});
+        video = Object.assign(video, { thumbnail: thumbnail.path });
         videosWithThumbnail.push(video);
       }
       setVideos(videosWithThumbnail);
+      setIsLoading(false);
       return;
     } catch (error) {
       console.log(error);
     }
   }
 
-  console.log(videos?.length);
 
-  const height = Dimensions.get('screen').height;
+  const height = Dimensions.get("screen").height;
 
-  return (
+  return isLoading ? (
+    <Loader />
+  ) : (
     <ScrollView
       scrollEnabled={true}
-      scrollToOverflowEnabled={true}
       contentContainerStyle={{
-        alignItems: "center",
         justifyContent: "space-between",
-        width: "100%",
-        height: height,
         padding: 10,
         flexDirection: "row",
         flexWrap: "wrap",
-        gap: 10
       }}
     >
       {videos?.length > 0 &&

@@ -12,35 +12,39 @@ import * as MediaLibrary from "expo-media-library";
 import { Video } from "expo-av";
 import VideoComponents from "../components/Video";
 import Folder from "../components/Folder";
+import Loader from "@/components/Loader";
 
 const Home = () => {
   const [albums, setAlbums] = useState(null);
   const [videos, setVideos] = useState([]);
+  const [isLoading, setIsloading] = useState(false);
 
   // const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
 
   async function getAlbums() {
     try {
+      setIsloading(true);
       const { status } = await MediaLibrary.getPermissionsAsync();
       if (status !== "granted") {
         console.log("Permissin Is Required");
         const { status } = await MediaLibrary.requestPermissionsAsync();
         if (status === "granted") {
           const folders = await MediaLibrary.getAlbumsAsync();
-        const albumContainingVideos = [];
-        if (folders.length > 0) {
-          for (const folder of folders) {
-            const videos = await MediaLibrary.getAssetsAsync({
-              album: folder.id,
-              mediaType: "video",
-              first: 1,
-            });
-            if (videos.totalCount > 0) {
-              albumContainingVideos.push(folder);
+          const albumContainingVideos = [];
+          if (folders.length > 0) {
+            for (const folder of folders) {
+              const videos = await MediaLibrary.getAssetsAsync({
+                album: folder.id,
+                mediaType: "video",
+                first: 1,
+              });
+              if (videos.totalCount > 0) {
+                albumContainingVideos.push(folder);
+              }
             }
           }
-        }
-        setAlbums(albumContainingVideos);
+          setAlbums(albumContainingVideos);
+          setIsloading(false);
         }
       } else {
         const folders = await MediaLibrary.getAlbumsAsync();
@@ -58,10 +62,11 @@ const Home = () => {
           }
         }
         setAlbums(albumContainingVideos);
-        // console.log(albumContainingVideos);
+        setIsloading(false);
       }
     } catch (error) {
       console.log(error);
+      setIsloading(false);
     }
   }
 
@@ -69,7 +74,9 @@ const Home = () => {
     getAlbums();
   });
 
-  return (
+  return isLoading ? (
+    <Loader />
+  ) : (
     <SafeAreaView
       style={{
         width: "100%",
@@ -81,10 +88,12 @@ const Home = () => {
         gap: 10,
       }}
     >
-      {albums?.length > 0 ? (
+      {!isLoading && albums?.length > 0 ? (
         albums?.map((item, idx) => <Folder assets={item} key={idx} />)
       ) : (
-        <Text>No Videos Found on The Device</Text>
+        <Text style={{ fontSize: 20, fontWeight: "500", textAlign: "center" }}>
+          No Videos Found on The Device
+        </Text>
       )}
     </SafeAreaView>
   );

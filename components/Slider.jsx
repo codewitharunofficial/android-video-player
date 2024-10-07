@@ -6,6 +6,7 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 const SliderComponent = ({
   currentPosition,
@@ -14,7 +15,8 @@ const SliderComponent = ({
   setIsPlaying,
   pauseVideo,
   pauseVideoAt,
-  resumeVideo
+  resumeVideo,
+  slideToSet
 }) => {
   const formatTime = (duration) => {
     const totalSeconds = Math.floor(duration / 1000);
@@ -40,6 +42,8 @@ const SliderComponent = ({
           maximumTrackTintColor="white"
           minimumTrackTintColor="orange"
           style={styles.slider}
+          onSliding={(value) => {slideToSet(value)}}
+          onPointerEnter={(value) => slideToSet(value)}
         />
         <Text style={styles.text}>
           {formatTime(duration - currentPosition)}
@@ -58,13 +62,19 @@ const SliderComponent = ({
             },
           ]}
         >
-          <MaterialIcons name="music-note" size={20} color={"white"} />
-          <MaterialIcons name="subtitles" size={20} color={"white"} />
-          <MaterialCommunityIcons
-            name="crop-rotate"
-            size={20}
-            color={"white"}
-          />
+          <TouchableOpacity style={styles.touchable}>
+            <MaterialIcons name="music-note" size={20} color={"white"} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.touchable}>
+            <MaterialIcons name="subtitles" size={20} color={"white"} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.touchable}>
+            <MaterialIcons
+              name="screen-rotation-alt"
+              size={20}
+              color={"white"}
+            />
+          </TouchableOpacity>
         </View>
         <View
           style={[
@@ -77,13 +87,35 @@ const SliderComponent = ({
             },
           ]}
         >
-          <MaterialIcons name="skip-previous" size={20} color={"white"} />
+          <TouchableOpacity style={styles.touchable}>
+            <MaterialIcons name="skip-previous" size={20} color={"white"} />
+          </TouchableOpacity>
           {isPlaying ? (
-            <Ionicons name="pause" size={20} color={"white"} />
+            <TouchableOpacity
+              onPress={() => {
+                setIsPlaying(false);
+                pauseVideo();
+                console.log("Paused");
+              }}
+              style={styles.touchable}
+            >
+              <Ionicons name="pause" size={20} color={"white"} />
+            </TouchableOpacity>
           ) : (
-            <Ionicons name="play" size={20} color={"white"} />
+            <TouchableOpacity
+              onPress={() => {
+                setIsPlaying(true);
+                resumeVideo();
+                console.log("Paused");
+              }}
+              style={styles.touchable}
+            >
+              <Ionicons name="play" size={20} color={"white"} />
+            </TouchableOpacity>
           )}
-          <MaterialIcons name="skip-next" size={20} color={"white"} />
+          <TouchableOpacity style={styles.touchable}>
+            <MaterialIcons name="skip-next" size={20} color={"white"} />
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -116,5 +148,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexDirection: "row",
     paddingHorizontal: 20,
+  },
+  touchable: {
+    width: "auto",
+    height: "auto",
+    padding: 10,
   },
 });
