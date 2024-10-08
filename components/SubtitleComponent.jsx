@@ -1,14 +1,29 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View } from "react-native";
+import React from "react";
 
-const SubtitleComponent = () => {
+const SubtitleComponent = ({ currentSubtitle }) => {
   return (
-    <View>
-      <Text>SubtitleComponent</Text>
+    <View style={styles.subtitleContainer}>
+      <Text style={styles.subtitleText}>{currentSubtitle}</Text>
     </View>
-  )
-}
+  );
+};
 
-export default SubtitleComponent
+export default SubtitleComponent;
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  subtitleContainer: {
+    position: "absolute",
+    bottom: "20%",
+    left: 10,
+    right: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1
+  },
+  subtitleText: {
+    color: "white",
+    fontSize: 20,
+    textAlign: 'center'
+  },
+});

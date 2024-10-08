@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     position: "absolute",
     top: 0,
-    zIndex: 1
+    zIndex: 2
   },
   text: {
     color: "#fff",

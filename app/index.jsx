@@ -23,12 +23,13 @@ const Home = () => {
 
   async function getAlbums() {
     try {
-      setIsloading(true);
+      
       const { status } = await MediaLibrary.getPermissionsAsync();
       if (status !== "granted") {
         console.log("Permissin Is Required");
         const { status } = await MediaLibrary.requestPermissionsAsync();
         if (status === "granted") {
+          setIsloading(true);
           const folders = await MediaLibrary.getAlbumsAsync();
           const albumContainingVideos = [];
           if (folders.length > 0) {
@@ -88,12 +89,12 @@ const Home = () => {
         gap: 10,
       }}
     >
-      {!isLoading && albums?.length > 0 ? (
-        albums?.map((item, idx) => <Folder assets={item} key={idx} />)
-      ) : (
+      {!isLoading && albums?.length < 1 ? (
         <Text style={{ fontSize: 20, fontWeight: "500", textAlign: "center" }}>
           No Videos Found on The Device
         </Text>
+      ) : (
+        albums?.map((item, idx) => <Folder assets={item} key={idx} />)
       )}
     </SafeAreaView>
   );

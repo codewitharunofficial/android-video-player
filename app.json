@@ -60,8 +60,7 @@
         {
           "initialOrientation": "DEFAULT"
         }
-      ],
-      "react-native-video"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -70,6 +69,10 @@
       "eas": {
         "projectId": "cd540ab3-d3b6-4d9b-b197-7d84a5af08d4"
       }
+    },
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/cd540ab3-d3b6-4d9b-b197-7d84a5af08d4"
     }
   }
 }

@@ -14,9 +14,10 @@ const SliderComponent = ({
   isPlaying,
   setIsPlaying,
   pauseVideo,
-  pauseVideoAt,
   resumeVideo,
-  slideToSet
+  slideToSet,
+  showSubtitles,
+  setShowSubtitles,
 }) => {
   const formatTime = (duration) => {
     const totalSeconds = Math.floor(duration / 1000);
@@ -42,54 +43,38 @@ const SliderComponent = ({
           maximumTrackTintColor="white"
           minimumTrackTintColor="orange"
           style={styles.slider}
-          onSliding={(value) => {slideToSet(value)}}
-          onPointerEnter={(value) => slideToSet(value)}
+          onSlidingComplete={(value) => {
+            slideToSet(value);
+          }}
         />
         <Text style={styles.text}>
           {formatTime(duration - currentPosition)}
         </Text>
       </View>
       <View style={[styles.controls, { justifyContent: "space-between" }]}>
-        <View
-          style={[
-            styles.controls,
-            {
-              gap: 30,
-              alignSelf: "flex-end",
-              justifyContent: "center",
-              paddingHorizontal: 20,
-              width: "50%",
-            },
-          ]}
-        >
+        <View style={styles.controls}>
           <TouchableOpacity style={styles.touchable}>
             <MaterialIcons name="music-note" size={20} color={"white"} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.touchable}>
-            <MaterialIcons name="subtitles" size={20} color={"white"} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.touchable}>
-            <MaterialIcons
-              name="screen-rotation-alt"
-              size={20}
-              color={"white"}
-            />
-          </TouchableOpacity>
-        </View>
-        <View
-          style={[
-            styles.controls,
-            {
-              alignSelf: "center",
-              justifyContent: "space-between",
-              paddingHorizontal: 20,
-              width: "50%",
-            },
-          ]}
-        >
-          <TouchableOpacity style={styles.touchable}>
-            <MaterialIcons name="skip-previous" size={20} color={"white"} />
-          </TouchableOpacity>
+          {showSubtitles ? (
+            <TouchableOpacity
+              onPress={() => {
+                setShowSubtitles(false);
+              }}
+              style={styles.touchable}
+            >
+              <MaterialIcons name="subtitles-off" size={20} color={"white"} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                setShowSubtitles(true);
+              }}
+              style={styles.touchable}
+            >
+              <MaterialIcons name="subtitles" size={20} color={"white"} />
+            </TouchableOpacity>
+          )}
           {isPlaying ? (
             <TouchableOpacity
               onPress={() => {
@@ -106,7 +91,7 @@ const SliderComponent = ({
               onPress={() => {
                 setIsPlaying(true);
                 resumeVideo();
-                console.log("Paused");
+                console.log("Resumed");
               }}
               style={styles.touchable}
             >
@@ -114,7 +99,11 @@ const SliderComponent = ({
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.touchable}>
-            <MaterialIcons name="skip-next" size={20} color={"white"} />
+            <MaterialIcons
+              name="screen-rotation-alt"
+              size={20}
+              color={"white"}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -141,17 +130,20 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     paddingHorizontal: 20,
     gap: 10,
+    pointerEvents: 'box-none'
   },
   controls: {
     width: "100%",
     alignSelf: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
     flexDirection: "row",
     paddingHorizontal: 20,
+    zIndex: 10
   },
   touchable: {
     width: "auto",
     height: "auto",
     padding: 10,
+    
   },
 });

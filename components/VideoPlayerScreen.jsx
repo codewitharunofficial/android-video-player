@@ -1,52 +1,57 @@
 import {
-  BackHandler,
   Dimensions,
   SafeAreaView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { BottomModal } from "react-native-modals";
-// import Video  from "react-native-video";
 import { Video } from "expo-av";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
-import { Ionicons } from "@expo/vector-icons";
 import Slider from "./Slider";
-import PlayerControls from "./PlayerControls";
 import VideoPlayerHeader from "./VideoPlayerHeader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import TopControls from "./TopControls";
 import * as Brightness from "expo-brightness";
 import { NativeModules } from "react-native";
 import * as FileSystem from "expo-file-system";
-import fs from "expo-file-system";
 import SubtitlesParser from "subtitles-parser";
+import SubtitleComponent from "./SubtitleComponent";
+import GestureValue from "./GestureValue";
 const VideoPlayerScreen = ({ visible, setVisible, video }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentPosition, setCurrentPosition] = useState(0);
   const [showControls, setShowControls] = useState(false);
+  const [forwarding, setForwarding] = useState(false);
+  const [backwarding, setBackwarding] = useState(false);
   const [seekOffSet, setSeekOffSet] = useState(0);
   const [rotated, setRotated] = useState(false);
   const [brightness, setBrightness] = useState(0);
+  const [brightnessUp, setBrightnessUp] = useState(false);
+  const [brightnessDown, setBrightnessDown] = useState(false);
   const [volume, setVolume] = useState(0.5);
+  const [volumeUp, setVolumeUp] = useState(false);
+  const [volumeDown, setVolumeDown] = useState(false);
   const [subtitles, setSubtitles] = useState();
   const [videoStatus, setVideoStatus] = useState({});
   const [currentSubtitles, setCurrentSubtitles] = useState("");
+  const [showSubtitles, setShowSubtitles] = useState(false);
 
   const initialBrightness = useRef(0);
-  const initialVolume = useRef(0.5);
-  const controller = useRef(null);
+  const initialVolume = useRef(0);
+  const controls = useRef(null);
 
   const height = Dimensions.get("screen").height;
   const width = Dimensions.get("screen").width;
 
+  const { FullScreenModule } = NativeModules;
   const { Subtitles } = NativeModules;
   const outputPath = `${FileSystem.documentDirectory}_${Date.now()}.srt`;
+
+  //Extracting Subtitles
 
   const getSubtitles = async () => {
     try {
@@ -62,15 +67,30 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
     }
   };
 
+  //Loading Subtitles
+
   const loadSubtitles = async (filePath) => {
     try {
       const fileContent = await FileSystem.readAsStringAsync(filePath);
       const parsedSubtitles = SubtitlesParser.fromSrt(fileContent);
       setSubtitles(parsedSubtitles);
-      // console.log(parsedSubtitles);
     } catch (error) {
       console.error(error);
     }
+  };
+
+  //Time Formatting
+  const formatTime = (duration) => {
+    const totalSeconds = Math.floor(duration / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+
+    const paddedHours = hours.toString().padStart(2, "0");
+    const paddedMinutes = minutes.toString().padStart(2, "0");
+    const paddedSeconds = seconds.toString().padStart(2, "0");
+
+    return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
   };
 
   //get and load subtitles if available
@@ -81,8 +101,8 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
   //sync and show subtitles
   useEffect(() => {
     if (videoStatus.isLoaded && videoStatus.positionMillis) {
-      const currentTime = videoStatus.positionMillis / 1000;
-      const subtitle = subtitles.find(
+      const currentTime = formatTime(currentPosition);
+      const subtitle = subtitles?.find(
         (s) => currentTime >= s.startTime && currentTime <= s.endTime
       );
       setCurrentSubtitles(subtitle ? subtitle.text : " ");
@@ -92,8 +112,6 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
   async function unloackOrientation() {
     await ScreenOrientation.unlockAsync();
   }
-
-  const { FullScreenModule } = NativeModules;
 
   const fullScreen = async () => {
     try {
@@ -124,44 +142,28 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
     };
   }, []);
 
-  const hideControls = () => {
-    controller.current = setTimeout(() => {
-      setShowControls(false);
-    }, 5000);
-  };
-
   const onGestureEvent = (event) => {
-    // console.log(event?.type);
-
-    if (controller.current) {
-      clearTimeout(controller.current);
-    }
-
-    setShowControls((prev) => !prev);
-    if (!showControls) {
-      hideControls();
-    }
-
     try {
       const { translationX } = event?.nativeEvent;
       const { translationY, x } = event?.nativeEvent;
-      // console.log(translationY);
 
       switch (true) {
         case translationX > 50:
-          let seekTime = currentPosition + translationX * 100;
+          let seekTime = currentPosition + translationX * 1000;
           if (seekTime >= 0 && seekTime <= duration) {
             videoRef.current.setPositionAsync(seekTime);
-            setSeekOffSet(translationX);
+            setForwarding(true);
+            setSeekOffSet(Math.floor(translationX));
           }
           break;
         case translationX < -50:
-          seekTime = currentPosition + translationX * 100;
+          seekTime = currentPosition + translationX * 1000;
           videoRef.current.setPositionAsync(seekTime);
-          setSeekOffSet(translationX);
-          console.log(translationX);
+          setBackwarding(true);
+          setSeekOffSet(Math.floor(translationX));
           break;
         case x < width / 2 && translationY > 50:
+          setBrightnessUp(true);
           const newBrightness = Math.max(
             0,
             Math.min(initialBrightness.current - translationY / 500, 1)
@@ -171,6 +173,7 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
           break;
 
         case x < width / 2 && translationY < -50:
+          setBrightnessDown(true);
           const brightness = Math.max(
             1,
             Math.min(initialBrightness.current - translationY / 500, 0)
@@ -181,6 +184,7 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
           break;
 
         case x > width / 2 && translationY > 50:
+          setVolumeUp(true);
           let newVolume = Math.max(
             0,
             Math.min(initialVolume.current + translationY / 1000, 1)
@@ -191,6 +195,7 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
           break;
 
         case x > width / 2 && translationY < -50:
+          setVolumeDown(true);
           newVolume = Math.max(
             1,
             Math.min(initialVolume.current + translationY / 1000, 0)
@@ -206,16 +211,37 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
   };
 
   const pauseVideo = async () => {
-    videoRef.current.pauseAsync();
+    await videoRef.current.pauseAsync();
+    pauseVideoAt(video.id, currentPosition);
   };
 
   const resume = async () => {
-    videoRef.current.playFromPositionAsync(currentPosition);
+    await videoRef.current.playFromPositionAsync(currentPosition);
   };
 
   const onHandlerStateChange = (event) => {
     if (event?.nativeEvent?.state === State.END) {
       setSeekOffSet(0);
+      switch (true) {
+        case forwarding:
+          setForwarding(false);
+          break;
+        case backwarding:
+          setBackwarding(false);
+          break;
+        case volumeUp:
+          setVolumeUp(false);
+          break;
+        case volumeDown:
+          setVolumeDown(false);
+          break;
+        case brightnessUp:
+          setBrightnessUp(false);
+          break;
+        case brightnessDown:
+          setBrightnessDown(false);
+          break;
+      }
     }
   };
 
@@ -240,13 +266,31 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
   };
 
   const slideToSetPosition = async (position) => {
-    videoRef.current?.setPositionAsync(position);
+    await videoRef.current?.setPositionAsync(position);
     console.log("Forwarding...");
   };
 
   useEffect(() => {
     resumeVideo();
   }, [visible]);
+
+  const hideControls = () => {
+    controls.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+  };
+
+  const handleTap = () => {
+    if (controls.current) {
+      clearTimeout(controls.current);
+    }
+
+    setShowControls((prev) => !prev);
+
+    if (!showControls) {
+      hideControls();
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, marginTop: "20%" }}>
@@ -255,6 +299,7 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
         onSwiping={() => {
           setVisible(false);
           setIsPlaying(false);
+          exitFullScreen();
           pauseVideoAt();
         }}
         visible={visible}
@@ -262,12 +307,13 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
           flex: 1,
           paddingTop: rotated ? 0 : "5%",
           backgroundColor: "#000",
+          pointerEvents: "box-none",
         }}
       >
         <PanGestureHandler
           onGestureEvent={(event) => onGestureEvent(event)}
           onHandlerStateChange={onHandlerStateChange}
-          hitSlop={{ left: 0, right: 0, top: 0, bottom: 30 }}
+          hitSlop={{ left: 0, right: 0, top: 0, bottom: 0 }}
           minDist={10}
           minVelocity={0.3}
         >
@@ -280,6 +326,41 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
               justifyContent: "center",
             }}
           >
+            {showSubtitles && (
+              <SubtitleComponent currentSubtitle={currentSubtitles} />
+            )}
+            {forwarding ? (
+              <GestureValue
+                action={forwarding ? ">>" : ""}
+                value={seekOffSet}
+              />
+            ) : backwarding ? (
+              <GestureValue
+                action={backwarding ? "<<" : ""}
+                value={seekOffSet}
+              />
+            ) : volumeUp ? (
+              <GestureValue
+                action={volumeUp ? "volume" : ""}
+                value={Math.floor(volume * 10)}
+              />
+            ) : volumeDown ? (
+              <GestureValue
+                action={volumeDown ? "volume" : ""}
+                value={Math.floor(volume * 10)}
+              />
+            ) : brightnessUp ? (
+              <GestureValue
+                action={brightnessUp ? "Brightness" : ""}
+                value={Math.floor(brightness * 10)}
+              />
+            ) : brightnessDown ? (
+              <GestureValue
+                action={brightnessDown ? "Brightness" : ""}
+                value={Math.floor(brightness * 10)}
+              />
+            ) : null}
+
             {showControls && (
               <>
                 <VideoPlayerHeader
@@ -309,35 +390,39 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
                 setVideoStatus(status);
               }}
             />
-            {showControls && (
-              <>
-                <Slider
-                  currentPosition={currentPosition}
-                  duration={duration}
-                  pauseVideo={pauseVideo}
-                  pauseVideoAt={pauseVideoAt}
-                  resumeVideo={resume}
-                  isPlaying={isPlaying}
-                  setIsPlaying={setIsPlaying}
-                  showControls={showControls}
-                  slideToSet={slideToSetPosition}
-                />
-              </>
-            )}
-            <TouchableOpacity
-              onPress={() => setShowControls(true)}
-              style={{
-                width: "100%",
-                height: "100%",
-                position: "absolute",
-                top: 0,
-                left: 0,
-                backgroundColor: "transparent",
-                zIndex: 1,
-              }}
-            />
           </View>
         </PanGestureHandler>
+        <TouchableOpacity
+          onPress={() => handleTap()}
+          style={{
+            width: "100%",
+            height: "70%",
+            position: "absolute",
+            top: "10%",
+            left: 0,
+            bottom: "10%",
+            backgroundColor: "transparent",
+            zIndex: 1,
+            alignSelf: "center",
+          }}
+        />
+        {showControls && (
+          <>
+            <Slider
+              currentPosition={currentPosition}
+              duration={duration}
+              pauseVideo={pauseVideo}
+              pauseVideoAt={pauseVideoAt}
+              resumeVideo={resume}
+              isPlaying={isPlaying}
+              setIsPlaying={setIsPlaying}
+              showControls={showControls}
+              slideToSet={slideToSetPosition}
+              showSubtitles={showSubtitles}
+              setShowSubtitles={setShowSubtitles}
+            />
+          </>
+        )}
       </BottomModal>
     </SafeAreaView>
   );
