@@ -6,24 +6,29 @@ import {
   View,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { BottomModal } from "react-native-modals";
 import { Video } from "expo-av";
+// import Video from "react-native-video";
 import * as ScreenOrientation from "expo-screen-orientation";
 import {
   PanGestureHandler,
   State,
   TapGestureHandler,
 } from "react-native-gesture-handler";
-import Slider from "./Slider";
-import VideoPlayerHeader from "./VideoPlayerHeader";
+import Slider from "@/components/Slider";
+import VideoPlayerHeader from "@/components/VideoPlayerHeader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Brightness from "expo-brightness";
 import { NativeModules } from "react-native";
 import * as FileSystem from "expo-file-system";
 import SubtitlesParser from "subtitles-parser";
-import SubtitleComponent from "./SubtitleComponent";
-import GestureValue from "./GestureValue";
-const VideoPlayerScreen = ({ visible, setVisible, video }) => {
+import SubtitleComponent from "@/components/SubtitleComponent";
+import GestureValue from "@/components/GestureValue";
+import { useLocalSearchParams } from "expo-router";
+const VideoPlayerScreen = ({ visible, setVisible }) => {
+  const { uri, videoId, title } = useLocalSearchParams();
+
+  // console.log(video);
+
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -61,7 +66,7 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
   //Extracting Subtitles
 
   const getSubtitles = async () => {
-    const subtitles = await Subtitles.extract(video, outputPath);
+    const subtitles = await Subtitles.extract(uri, outputPath);
     if (subtitles) {
       // console.log(subtitles);
       loadSubtitles(outputPath);
@@ -130,9 +135,7 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
   };
 
   useEffect(() => {
-    if (visible) {
-      fullScreen();
-    }
+    fullScreen();
   }, []);
 
   useEffect(() => {
@@ -146,7 +149,6 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
   }, []);
 
   const onGestureEvent = (event) => {
-    console.log("Tapped");
 
     try {
       const { translationX } = event?.nativeEvent;
@@ -217,7 +219,7 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
 
   const pauseVideo = async () => {
     await videoRef.current.pauseAsync();
-    pauseVideoAt(video.id, currentPosition);
+    pauseVideoAt(videoId, currentPosition);
   };
 
   const resume = async () => {
@@ -256,7 +258,7 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
   };
 
   const resumeVideo = async () => {
-    const data = await AsyncStorage.getItem(`${video?.id}`);
+    const data = await AsyncStorage.getItem(`${videoId}`);
     const res = JSON.parse(data);
     if (res) {
       if (res === duration || !res) {
@@ -277,7 +279,7 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
 
   useEffect(() => {
     resumeVideo();
-  }, [visible]);
+  }, []);
 
   const hideControls = () => {
     controls.current = setTimeout(() => {
@@ -300,145 +302,135 @@ const VideoPlayerScreen = ({ visible, setVisible, video }) => {
     <SafeAreaView
       style={{
         flex: 1,
-        marginTop: "20%",
+        //   marginTop: "20%",
         paddingTop: rotated ? 0 : "5%",
         backgroundColor: "#000",
       }}
     >
-      {/* <BottomModal
-        visible={visible}
-        style={{
-          flex: 1,
-          paddingTop: rotated ? 0 : "5%",
-          backgroundColor: "#000",
-          pointerEvents: "box-none",
-        }}
-      > */}
-        <PanGestureHandler
-          ref={panRef}
-          onGestureEvent={(event) => onGestureEvent(event)}
-          onHandlerStateChange={onHandlerStateChange}
-          hitSlop={{ left: 0, right: 0, top: 0, bottom: 0 }}
-          waitFor={tapRef}
+      <PanGestureHandler
+        ref={panRef}
+        onGestureEvent={(event) => onGestureEvent(event)}
+        onHandlerStateChange={onHandlerStateChange}
+        hitSlop={{ left: 0, right: 0, top: 0, bottom: 0 }}
+        waitFor={tapRef}
+      >
+        <TapGestureHandler
+          ref={tapRef}
+          onHandlerStateChange={handleTap}
+          numberOfTaps={1}
+          // waitFor={panRef}
         >
-          <TapGestureHandler
-            ref={tapRef}
-            onHandlerStateChange={handleTap}
-            numberOfTaps={1}
-            // waitFor={panRef}
+          <View
+            style={{
+              width: "100%",
+              height: "100%",
+              backgroundColor: "#000",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            <View
+            {showSubtitles && (
+              <SubtitleComponent
+                currentSubtitle={currentSubtitles ? currentSubtitles : null}
+              />
+            )}
+            {forwarding ? (
+              <GestureValue
+                action={forwarding ? ">>" : ""}
+                value={seekOffSet}
+              />
+            ) : backwarding ? (
+              <GestureValue
+                action={backwarding ? "<<" : ""}
+                value={seekOffSet}
+              />
+            ) : volumeUp ? (
+              <GestureValue
+                action={volumeUp ? "volume" : ""}
+                value={Math.floor(volume * 10)}
+              />
+            ) : volumeDown ? (
+              <GestureValue
+                action={volumeDown ? "volume" : ""}
+                value={Math.floor(volume * 10)}
+              />
+            ) : brightnessUp ? (
+              <GestureValue
+                action={brightnessUp ? "Brightness" : ""}
+                value={Math.floor(brightness * 10)}
+              />
+            ) : brightnessDown ? (
+              <GestureValue
+                action={brightnessDown ? "Brightness" : ""}
+                value={Math.floor(brightness * 10)}
+              />
+            ) : null}
+
+            {showControls && (
+              <>
+                <VideoPlayerHeader
+                  video={uri}
+                  setVisible={setVisible}
+                  pauseAt={pauseVideoAt}
+                  currentPosition={currentPosition}
+                  videoId={videoId}
+                  exitFullScreen={exitFullScreen}
+                />
+              </>
+            )}
+
+            <Video
+              ref={videoRef}
+              source={{ uri: uri }}
+              resizeMode="contain"
               style={{
                 width: "100%",
-                height: "100%",
-                backgroundColor: "#000",
-                alignItems: "center",
-                justifyContent: "center",
+                height: rotated && showControls ? "80%" : "100%",
               }}
-            >
-              {showSubtitles && (
-                <SubtitleComponent
-                  currentSubtitle={currentSubtitles ? currentSubtitles : null}
-                />
-              )}
-              {forwarding ? (
-                <GestureValue
-                  action={forwarding ? ">>" : ""}
-                  value={seekOffSet}
-                />
-              ) : backwarding ? (
-                <GestureValue
-                  action={backwarding ? "<<" : ""}
-                  value={seekOffSet}
-                />
-              ) : volumeUp ? (
-                <GestureValue
-                  action={volumeUp ? "volume" : ""}
-                  value={Math.floor(volume * 10)}
-                />
-              ) : volumeDown ? (
-                <GestureValue
-                  action={volumeDown ? "volume" : ""}
-                  value={Math.floor(volume * 10)}
-                />
-              ) : brightnessUp ? (
-                <GestureValue
-                  action={brightnessUp ? "Brightness" : ""}
-                  value={Math.floor(brightness * 10)}
-                />
-              ) : brightnessDown ? (
-                <GestureValue
-                  action={brightnessDown ? "Brightness" : ""}
-                  value={Math.floor(brightness * 10)}
-                />
-              ) : null}
-
-              {showControls && (
-                <>
-                  <VideoPlayerHeader
-                    video={video}
-                    setVisible={setVisible}
-                    pauseAt={pauseVideoAt}
-                    currentPosition={currentPosition}
-                    videoId={video.id}
-                    exitFullScreen={exitFullScreen}
-                  />
-                </>
-              )}
-
-              <Video
-                ref={videoRef}
-                source={{ uri: video }}
-                resizeMode="contain"
-                style={{
-                  width: "100%",
-                  height: rotated && showControls ? "80%" : "100%",
-                }}
-                shouldPlay={true}
-                onPlaybackStatusUpdate={(status) => {
-                  setDuration(status.durationMillis);
-                  setIsPlaying(status.isPlaying);
-                  setCurrentPosition(status.positionMillis);
-                  setVideoStatus(status);
-                }}
-              />
-            </View>
-          </TapGestureHandler>
-        </PanGestureHandler>
-        {/* <TouchableOpacity
-          ref={tapRef}
-          onPress={() => handleTap()}
-          style={{
-            width: "100%",
-            height: "100%",
-            position: "absolute",
-            top: "10%",
-            left: 0,
-            bottom: "10%",
-            backgroundColor: "transparent",
-            zIndex: 1,
-            alignSelf: "center",
-          }}
-        /> */}
-        {showControls && (
-          <>
-            <Slider
-              currentPosition={currentPosition}
-              duration={duration}
-              pauseVideo={pauseVideo}
-              pauseVideoAt={pauseVideoAt}
-              resumeVideo={resume}
-              isPlaying={isPlaying}
-              setIsPlaying={setIsPlaying}
-              showControls={showControls}
-              subtitles={subtitles}
-              slideToSet={slideToSetPosition}
-              showSubtitles={showSubtitles}
-              setShowSubtitles={setShowSubtitles}
+              shouldPlay={true}
+              onPlaybackStatusUpdate={(status) => {
+                setDuration(status.durationMillis);
+                setIsPlaying(status.isPlaying);
+                setCurrentPosition(status.positionMillis);
+                setVideoStatus(status);
+              }}
             />
-          </>
-        )}
-      {/* </BottomModal> */}
+          </View>
+        </TapGestureHandler>
+      </PanGestureHandler>
+      {/* <TouchableOpacity
+            ref={tapRef}
+            onPress={() => handleTap()}
+            style={{
+              width: "100%",
+              height: "100%",
+              position: "absolute",
+              top: "10%",
+              left: 0,
+              bottom: "10%",
+              backgroundColor: "transparent",
+              zIndex: 1,
+              alignSelf: "center",
+            }}
+          /> */}
+      {showControls && (
+        <>
+          <Slider
+            currentPosition={currentPosition}
+            duration={duration}
+            pauseVideo={pauseVideo}
+            pauseVideoAt={pauseVideoAt}
+            resumeVideo={resume}
+            isPlaying={isPlaying}
+            setIsPlaying={setIsPlaying}
+            showControls={showControls}
+            subtitles={subtitles}
+            slideToSet={slideToSetPosition}
+            showSubtitles={showSubtitles}
+            setShowSubtitles={setShowSubtitles}
+          />
+        </>
+      )}
     </SafeAreaView>
   );
 };

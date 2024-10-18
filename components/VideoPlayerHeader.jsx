@@ -2,13 +2,16 @@ import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { AntDesign } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { useRouter } from "expo-router";
 
-const VideoPlayerHeader = ({ video, setVisible, pauseAt, currentPosition, videoId, exitFullScreen }) => {
+const VideoPlayerHeader = ({ title, pauseAt, currentPosition, videoId, exitFullScreen }) => {
+  const router = useRouter();
   return (
     <View style={styles.view}>
       <TouchableOpacity
         onPress={() => {
-          setVisible(false);
+          // setVisible(false);
+         router.back();
           exitFullScreen();
           pauseAt(videoId, currentPosition);
           console.log("Pressed");
@@ -31,7 +34,7 @@ const VideoPlayerHeader = ({ video, setVisible, pauseAt, currentPosition, videoI
           justifyContent: "center",
         }}
       >
-        <Text style={styles.text}>{video?.filename}</Text>
+        <Text style={styles.text}>{title}</Text>
       </View>
     </View>
   );

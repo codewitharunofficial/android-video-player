@@ -5,7 +5,8 @@ import { Stack } from 'expo-router'
 const _layout = () => {
   return (
     <Stack>
-        <Stack.Screen name='index' options={{title: "Videos", headerTitleAlign: 'center', headerShown: false}} /> 
+        <Stack.Screen name='index' options={{title: "Videos", headerTitleAlign: 'center', headerShown: true}} /> 
+        <Stack.Screen name='player' options={{title: "Player", headerTitleAlign: 'center', headerShown: false}}  />
     </Stack>
   )
 }

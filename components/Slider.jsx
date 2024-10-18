@@ -18,6 +18,7 @@ const SliderComponent = ({
   slideToSet,
   showSubtitles,
   setShowSubtitles,
+  subtitles
 }) => {
   const formatTime = (duration) => {
     const totalSeconds = Math.floor(duration / 1000);
@@ -70,6 +71,7 @@ const SliderComponent = ({
               onPress={() => {
                 setShowSubtitles(true);
               }}
+              disabled={subtitles ? false : true}
               style={styles.touchable}
             >
               <MaterialIcons name="subtitles" size={20} color={"white"} />

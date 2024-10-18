@@ -4,7 +4,7 @@ import { ActivityIndicator } from 'react-native'
 
 const Loader = () => {
   return (
-    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}} >
+    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10}} >
       <ActivityIndicator color={'gray'} size={50} />
       <Text>Loading...</Text>
     </View>
@@ -13,4 +13,4 @@ const Loader = () => {
 
 export default Loader
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({});

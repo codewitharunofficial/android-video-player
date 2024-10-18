@@ -60,7 +60,8 @@
         {
           "initialOrientation": "DEFAULT"
         }
-      ]
+      ],
+      "react-native-video"
     ],
     "experiments": {
       "typedRoutes": true

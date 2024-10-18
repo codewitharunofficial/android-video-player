@@ -4,9 +4,11 @@ import { Stack } from "expo-router";
 import { ModalPortal } from "react-native-modals";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-gesture-handler";
+import { PlayerScreenProvider } from "@/context/PlayerScreenContext";
 
 const _layout = () => {
   return (
+    // <PlayerScreenProvider>
     <GestureHandlerRootView style={{flex: 1}} >
       {/* <StatusBar /> */}
       <Stack>
@@ -20,11 +22,16 @@ const _layout = () => {
         />
         <Stack.Screen
           name="videos"
-          options={{ title: "Videos", headerTitleAlign: "center" }}
+          options={{ title: "Videos", headerTitleAlign: "center", headerShown: false }}
         />
+        {/* <Stack.Screen
+          name="video/player"
+          options={{ title: "Player", headerTitleAlign: "center", headerShown: false }}
+        /> */}
       </Stack>
       <ModalPortal />
     </GestureHandlerRootView>
+    // </PlayerScreenProvider>
   );
 };
 

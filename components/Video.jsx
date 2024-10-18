@@ -1,5 +1,5 @@
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 // import { Video } from "expo-av";
 import { TouchableOpacity } from "react-native";
 import VideoPlayerScreen from "./VideoPlayerScreen";
@@ -7,6 +7,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NativeModules } from "react-native";
 import * as FileSystem from "expo-file-system";
 import { Feather } from "@expo/vector-icons";
+import { PlayerScreenContext } from "@/context/PlayerScreenContext";
+import { useRouter } from "expo-router";
 
 const VideoComponents = ({ video }) => {
   const [playVideo, setPlayVideo] = useState(false);
@@ -14,13 +16,11 @@ const VideoComponents = ({ video }) => {
   const [isFinished, setIsFinished] = useState(false);
   const [position, setPosition] = useState(0);
 
+  const router = useRouter();
+
   useEffect(() => {
     checkVideosIfPlayed(video.id);
   }, []);
-
-  // useEffect(() => {
-  //   getSubtitles();
-  // }, []);
 
   const checkVideosIfPlayed = async (videoId) => {
     const res = await AsyncStorage.getItem(`${videoId}`);
@@ -41,18 +41,20 @@ const VideoComponents = ({ video }) => {
   const { width, height } = Dimensions.get("window");
   const itemWidth = width / 2;
   const itemHeight = height / 3.5;
-  // console.log(video);
+
   return (
     <>
-      {playVideo && (
+      {/* {playVideo && (
         <VideoPlayerScreen
           visible={playVideo}
           setVisible={setPlayVideo}
           video={video}
         />
-      )}
+      )} */}
       <TouchableOpacity
-        onPress={() => setPlayVideo(true)}
+        onPress={() =>
+          router.navigate({ pathname: "/videos/player/", params: { uri: video?.uri, title: video?.filename, videoId: video?.id }})
+        }
         style={{ width: itemWidth - 10, height: itemHeight - 10, padding: 10 }}
       >
         <View
@@ -82,7 +84,7 @@ const VideoComponents = ({ video }) => {
           />
         )}
         <Image
-          source={{ uri: video?.thumbnail ? video.thumbnail : null }}
+          source={{ uri: video?.thumbnail ? video.thumbnail : "" }}
           resizeMode="cover"
           style={{ width: "100%", height: "70%", borderRadius: 10 }}
         />
