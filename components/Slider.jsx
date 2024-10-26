@@ -18,12 +18,13 @@ const SliderComponent = ({
   slideToSet,
   showSubtitles,
   setShowSubtitles,
-  subtitles
+  subtitles,
+  rotateToLandScape
 }) => {
   const formatTime = (duration) => {
-    const totalSeconds = Math.floor(duration / 1000);
+    const totalSeconds = Math.floor(duration);
     const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const minutes = Math.floor((totalSeconds / 60));
     const seconds = Math.floor(totalSeconds % 60);
 
     const paddedHours = hours.toString().padStart(2, "0");
@@ -100,7 +101,7 @@ const SliderComponent = ({
               <Ionicons name="play" size={20} color={"white"} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.touchable}>
+          <TouchableOpacity style={styles.touchable} onPress={() => rotateToLandScape()} >
             <MaterialIcons
               name="screen-rotation-alt"
               size={20}

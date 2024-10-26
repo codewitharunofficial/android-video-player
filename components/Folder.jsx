@@ -11,6 +11,8 @@ const Folder = ({ assets }) => {
   const [thumbnail, setThumbnail] = useState(null);
   const [albumSize, setAlbumSize] = useState(0);
 
+  // const defaultImage = require("@/assets/images/icon.png");
+
   const router = useRouter();
 
   const getThumbnail = async () => {
@@ -56,7 +58,7 @@ const Folder = ({ assets }) => {
       style={styles.view}
     >
       <Image
-        source={{ uri: thumbnail ? thumbnail : `${require("@/assets/images/icon.png")}` }}
+        source={{ uri: thumbnail ? thumbnail : `${require("@/assets/images/icon.png")}`}}
         resizeMode="cover"
         style={{ width: width/2 - 15, height: height / 6, borderRadius: 10 }}
       />

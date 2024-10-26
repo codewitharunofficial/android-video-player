@@ -5,12 +5,14 @@ import { ModalPortal } from "react-native-modals";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-gesture-handler";
 import { PlayerScreenProvider } from "@/context/PlayerScreenContext";
+import { SubtitleProvider } from "@/context/Subtitles";
 
 const _layout = () => {
   return (
     // <PlayerScreenProvider>
     <GestureHandlerRootView style={{flex: 1}} >
       {/* <StatusBar /> */}
+      <SubtitleProvider>
       <Stack>
         <Stack.Screen
           name="index"
@@ -29,6 +31,7 @@ const _layout = () => {
           options={{ title: "Player", headerTitleAlign: "center", headerShown: false }}
         /> */}
       </Stack>
+      </SubtitleProvider>
       <ModalPortal />
     </GestureHandlerRootView>
     // </PlayerScreenProvider>

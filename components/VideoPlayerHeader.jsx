@@ -14,7 +14,7 @@ const VideoPlayerHeader = ({ title, pauseAt, currentPosition, videoId, exitFullS
          router.back();
           exitFullScreen();
           pauseAt(videoId, currentPosition);
-          console.log("Pressed");
+          console.log(`Paused At: ${currentPosition}`);
         }}
         style={{
           width: "auto",
