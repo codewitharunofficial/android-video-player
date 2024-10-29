@@ -2,29 +2,25 @@ import {
   Dimensions,
   SafeAreaView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from "react-native";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 // import { Video } from "expo-av";
 import Video from "react-native-video";
 import * as ScreenOrientation from "expo-screen-orientation";
 import {
   PanGestureHandler,
   State,
-  TapGestureHandler,
 } from "react-native-gesture-handler";
 import Slider from "@/components/Slider";
 import VideoPlayerHeader from "@/components/VideoPlayerHeader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Brightness from "expo-brightness";
 import { NativeModules } from "react-native";
-import * as FileSystem from "expo-file-system";
-import SubtitlesParser from "subtitles-parser";
 import SubtitleComponent from "@/components/SubtitleComponent";
 import GestureValue from "@/components/GestureValue";
 import { useLocalSearchParams } from "expo-router";
-import { CurrentSubtitles } from "@/context/Subtitles";
+import AudioTracksComponent from "@/components/AudioTracksComponent";
 const VideoPlayerScreen = ({ visible, setVisible }) => {
   const { uri, videoId, title } = useLocalSearchParams();
 
@@ -45,11 +41,12 @@ const VideoPlayerScreen = ({ visible, setVisible }) => {
   const [volumeUp, setVolumeUp] = useState(false);
   const [volumeDown, setVolumeDown] = useState(false);
   const [subtitles, setSubtitles] = useState();
-  const [videoStatus, setVideoStatus] = useState({});
-  // const [currentSubtitles, setCurrentSubtitles] = useState("");
   const [showSubtitles, setShowSubtitles] = useState(false);
-  const {currentSubtitles} = useContext(CurrentSubtitles);
-
+  const [enableSubtitles, setEnableSubtitles] = useState(false);
+  const [currentSubtitles, setCurrentSubtitles] = useState(0);
+  const [showAudioTracks, setShowAudioTracks] = useState(false);
+  const [currentAudioTrack, setCurrentAudioTrack] = useState(0);
+  const [audioTracks, setAudioTracks] = useState();
   const initialBrightness = useRef(0);
   const initialVolume = useRef(0);
   const controls = useRef(null);
@@ -61,31 +58,7 @@ const VideoPlayerScreen = ({ visible, setVisible }) => {
   const width = Dimensions.get("screen").width;
 
   const { FullScreenModule } = NativeModules;
-  const { Subtitles } = NativeModules;
-  const outputPath = `${FileSystem.documentDirectory}_${Date.now()}.srt`;
-
-  //Extracting Subtitles
-
-  // const getSubtitles = async () => {
-  //   const textTracks = await Subtitles.extract(uri, outputPath);
-  //   if (textTracks) {
-  //     console.log(textTracks);
-  //     setSubtitles(textTracks);
-  //     // loadSubtitles(outputPath);
-  //   }
-  // };
-
-  //Loading Subtitles
-
-  // const loadSubtitles = async (filePath) => {
-  //   try {
-  //     const fileContent = await FileSystem.readAsStringAsync(filePath);
-  //     const parsedSubtitles = SubtitlesParser.fromSrt(fileContent);
-  //     setSubtitles(parsedSubtitles);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
+  
 
   //Time Formatting
   const formatTime = (duration) => {
@@ -100,24 +73,6 @@ const VideoPlayerScreen = ({ visible, setVisible }) => {
 
     return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
   };
-
-  //get and load subtitles if available
-  // useEffect(() => {
-  //   getSubtitles();
-  // }, []);
-
-  //sync and show subtitles
-  useEffect(() => {
-    if (videoStatus.isLoaded && videoStatus.positionMillis) {
-      if (subtitles) {
-        const currentTime = formatTime(currentPosition);
-        const subtitle = subtitles?.find(
-          (s) => currentTime >= s.startTime && currentTime <= s.endTime
-        );
-        setCurrentSubtitles(subtitle ? subtitle.text : " ");
-      }
-    }
-  }, [videoStatus.positionMillis, subtitles]);
 
   async function unloackOrientation() {
     await ScreenOrientation.unlockAsync();
@@ -155,20 +110,23 @@ const VideoPlayerScreen = ({ visible, setVisible }) => {
       const { translationX } = event?.nativeEvent;
       const { translationY, x } = event?.nativeEvent;
 
+      // console.log(event?.nativeEvent);
+
       switch (true) {
         case translationX > 50:
-          let seekTime = currentPosition + translationX * 1000;
+          let seekTime = currentPosition + translationX / 10;
+          // console.log(seekTime, currentPosition);
           if (seekTime >= 0 && seekTime <= duration) {
             videoRef.current.seek(seekTime);
             setForwarding(true);
-            setSeekOffSet(Math.floor(translationX));
+            setSeekOffSet(Math.floor(translationX / 10));
           }
           break;
         case translationX < -50:
-          seekTime = currentPosition + translationX * 1000;
+          seekTime = currentPosition + translationX / 10;
           videoRef.current.seek(seekTime);
           setBackwarding(true);
-          setSeekOffSet(Math.floor(translationX));
+          setSeekOffSet(Math.floor(translationX / 10));
           break;
         case x < width / 2 && translationY > 50:
           setBrightnessUp(true);
@@ -307,7 +265,9 @@ const VideoPlayerScreen = ({ visible, setVisible }) => {
     ScreenOrientation.unlockAsync();
   }
 
-  console.log(currentSubtitles)
+  // console.log(currentSubtitles)
+
+  // const {height, width} = Dimensions.get('window');
 
   return (
     <SafeAreaView
@@ -335,17 +295,26 @@ const VideoPlayerScreen = ({ visible, setVisible }) => {
           }}
         >
           <SubtitleComponent
-            // currentSubtitle={currentSubtitles ? currentSubtitles : null}
             visible={showSubtitles}
             subtitles={subtitles}
             setVisible={setShowSubtitles}
             height={height}
             width={width}
+            setCurrentSubtitles={setCurrentSubtitles}
+            setEnableSubtitles={setEnableSubtitles}
           />
+          <AudioTracksComponent
+            visible={showAudioTracks}
+            setVisible={setShowAudioTracks}
+            height={height}
+            width={width}
+            setCurrentAudioTracks={setCurrentAudioTrack}
+            audioTracks={audioTracks}
+           />
           {forwarding ? (
-            <GestureValue action={forwarding ? ">>" : ""} value={seekOffSet} />
+            <GestureValue action={forwarding ? "+s >>" : ""} value={seekOffSet} />
           ) : backwarding ? (
-            <GestureValue action={backwarding ? "<<" : ""} value={seekOffSet} />
+            <GestureValue action={backwarding ? "<< -s" : ""} value={seekOffSet} />
           ) : volumeUp ? (
             <GestureValue
               action={volumeUp ? "volume" : ""}
@@ -390,8 +359,8 @@ const VideoPlayerScreen = ({ visible, setVisible }) => {
             }}
             resizeMode="contain"
             style={{
-              width: "100%",
-              height: rotated && showControls ? "80%" : "100%",
+              width: width,
+              height: height,
             }}
             progressUpdateInterval={1000}
             onAudioBecomingNoisy={pauseVideo}
@@ -407,8 +376,10 @@ const VideoPlayerScreen = ({ visible, setVisible }) => {
             paused={isPaused}
             volume={volume}
             onLoad={() => resumeVideo()}
-            selectedTextTrack={currentSubtitles ? {type: "index", value: currentSubtitles?.index} : null}
+            selectedAudioTrack={{type: 'index', value: currentAudioTrack ? currentAudioTrack : 0}}
+            selectedTextTrack={enableSubtitles ? {type: 'index', value: currentSubtitles} : null}
             onTextTracks={(tracks) => setSubtitles(tracks.textTracks)}
+            onAudioTracks={(tracks) => setAudioTracks(tracks.audioTracks)}
           />
         </View>
       </PanGestureHandler>
@@ -428,6 +399,8 @@ const VideoPlayerScreen = ({ visible, setVisible }) => {
             showSubtitles={showSubtitles}
             setShowSubtitles={setShowSubtitles}
             rotateToLandScape={changeToLandScape}
+            showAudioTracks={showAudioTracks}
+            setShowAudioTracks={setShowAudioTracks}
           />
         </>
       )}

@@ -1,10 +1,8 @@
-import { Dimensions, StyleSheet, Text, View } from "react-native";
-import React, { useContext, useMemo } from "react";
+import { StyleSheet, Text } from "react-native";
+import React, { useContext } from "react";
 import { BottomModal } from "react-native-modals";
-// import RadioGroup from "react-native-radio-buttons-group";
-import { Picker } from "@react-native-picker/picker";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { CurrentSubtitles } from "@/context/Subtitles";
+import { AntDesign } from "@expo/vector-icons";
 
 const SubtitleComponent = ({
   visible,
@@ -12,41 +10,32 @@ const SubtitleComponent = ({
   subtitles,
   height,
   width,
+  setCurrentSubtitles,
+  setEnableSubtitles
 }) => {
-  // const { width, height } = Dimensions.get("window");
 
-  const {currentSubtitle, setCurrentSubtitles} = useContext(CurrentSubtitles);
-
-  // console.log(subtitles)
-
-  // const radioButtons = useMemo(() => [subtitles], []);
+  // console.log(subtitles[0])
 
   return (
-    // <View style={styles.subtitleContainer}>
-    //   <Text style={styles.subtitleText}>{currentSubtitle}</Text>
-    // </View>
-
     <BottomModal
-      directions={["down"]}
-      styles={{
-        backgroundColor: "#000",
-        width: width,
-        height: height,
-      }}
+      swipeDirection={['down']}
+      modalStyle={{width: width, height: height/ 5, backgroundColor: 'rgba(250, 250, 250, 0.2)'}}
       visible={visible}
-      onSwipe={() => {
-        setVisible(false);
-        console.log("Swiped");
-      }}
+      onSwiping={() => setVisible(!visible)}
     >
       {subtitles?.length > 0 ? (
         subtitles?.map((track, index) => (
-          <TouchableOpacity onPress={() => {setCurrentSubtitles(track); console.log("Selected")}} style={{height: 100, width: '100%', backgroundColor: 'transparent', padding: 10}} key={index} >
-          <Text style={{color: 'black'}} >{track.title}</Text>
+          <TouchableOpacity onPress={() => {setCurrentSubtitles(track?.index); setEnableSubtitles(true)}} style={{height: 70, width: '100%', backgroundColor: 'transparent', padding: 20, flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#fff'}} key={index} >
+          <Text style={{color: '#fff', fontSize: 20}} >{track.title}</Text>
+          {
+            track.selected && (
+              <AntDesign name="check" color={'green'} size={20} />
+            )
+          }
           </TouchableOpacity>
         ))
       ) : (
-        <Text>No subtitles available</Text>
+        <Text style={{alignSelf: 'center', color: '#fff', fontSize: 20}} >No subtitles available</Text>
       )}
     </BottomModal>
   );

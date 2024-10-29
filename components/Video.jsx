@@ -1,13 +1,9 @@
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 // import { Video } from "expo-av";
 import { TouchableOpacity } from "react-native";
-import VideoPlayerScreen from "./VideoPlayerScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { NativeModules } from "react-native";
-import * as FileSystem from "expo-file-system";
 import { Feather } from "@expo/vector-icons";
-import { PlayerScreenContext } from "@/context/PlayerScreenContext";
 import { useRouter } from "expo-router";
 
 const VideoComponents = ({ video }) => {

@@ -1,11 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import Slider from "@react-native-community/slider";
-import {
-  Ionicons,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
 const SliderComponent = ({
@@ -19,12 +15,15 @@ const SliderComponent = ({
   showSubtitles,
   setShowSubtitles,
   subtitles,
-  rotateToLandScape
+  rotateToLandScape,
+  showAudioTracks,
+  setShowAudioTracks,
+  setShowControls
 }) => {
   const formatTime = (duration) => {
     const totalSeconds = Math.floor(duration);
     const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds / 60));
+    const minutes = Math.floor(totalSeconds / 60);
     const seconds = Math.floor(totalSeconds % 60);
 
     const paddedHours = hours.toString().padStart(2, "0");
@@ -55,7 +54,10 @@ const SliderComponent = ({
       </View>
       <View style={[styles.controls, { justifyContent: "space-between" }]}>
         <View style={styles.controls}>
-          <TouchableOpacity style={styles.touchable}>
+          <TouchableOpacity
+            onPress={() => {setShowAudioTracks(!showAudioTracks); setShowControls(false)}}
+            style={styles.touchable}
+          >
             <MaterialIcons name="music-note" size={20} color={"white"} />
           </TouchableOpacity>
           {showSubtitles ? (
@@ -71,6 +73,7 @@ const SliderComponent = ({
             <TouchableOpacity
               onPress={() => {
                 setShowSubtitles(true);
+                setShowControls(false);
               }}
               disabled={subtitles ? false : true}
               style={styles.touchable}
@@ -101,7 +104,10 @@ const SliderComponent = ({
               <Ionicons name="play" size={20} color={"white"} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.touchable} onPress={() => rotateToLandScape()} >
+          <TouchableOpacity
+            style={styles.touchable}
+            onPress={() => rotateToLandScape()}
+          >
             <MaterialIcons
               name="screen-rotation-alt"
               size={20}
@@ -133,7 +139,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     paddingHorizontal: 20,
     gap: 10,
-    pointerEvents: 'box-none'
+    pointerEvents: "box-none",
   },
   controls: {
     width: "100%",
@@ -141,12 +147,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     flexDirection: "row",
     paddingHorizontal: 20,
-    zIndex: 10
+    zIndex: 10,
   },
   touchable: {
     width: "auto",
     height: "auto",
     padding: 10,
-    
   },
 });

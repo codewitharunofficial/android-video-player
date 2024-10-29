@@ -18,15 +18,18 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createThumbnail } from "react-native-create-thumbnail";
+import * as Linking from 'expo-linking';
+import { useRouter } from "expo-router";
 
 const Home = () => {
   const [albums, setAlbums] = useState(null);
   const [videos, setVideos] = useState([]);
   const [isLoading, setIsloading] = useState(false);
+  const [url, setUrl] = useState(null);
+
+  const router = useRouter();
 
   const { width, height } = Dimensions.get("window");
-
-  // const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
 
   async function getAlbums() {
     try {
@@ -117,6 +120,35 @@ const Home = () => {
     }
   }, [albums]);
   // console.log(albumThumbnail);
+
+
+  const getUriAndFetchVideo = async (url) => {
+    try {
+          const video = await MediaLibrary.getAssetInfoAsync(url);
+          if(video){
+            console.log(video.filename);
+            console.log(video.uri);
+            router.push({pathname: '/videos/player', params: {uri: video.uri, title: video.filename, videoId: video.id}})
+          }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+
+  useEffect(() => {
+    Linking.getInitialURL().then((url) => {
+      if(url){
+        setUrl(url);
+      }
+    })
+  }, []);
+
+  useEffect(() => {
+    if(url){
+      getUriAndFetchVideo(url);
+    }
+  }, [url])
 
 
   return isLoading ? (
